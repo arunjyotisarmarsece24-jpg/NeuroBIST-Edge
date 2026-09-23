@@ -1,6 +1,6 @@
 # NeuroBIST-Edge: Production Verification & Hardware Demo Guide
 
-**Conversation ID:** `5e44d201-b1ab-4350-a398-fc5e7fca1758` (Resumed from `1789eaff-28e0-40a3-b2ae-1df03708b37d`)  
+**Conversation ID:** `130f8041-9960-4930-b16d-fae7e7397bcb`  
 **Project Folder:** `C:\Users\IITBHU RESEARCH LAB\OneDrive\Desktop\Arunjyoti_Sarma\My_Coding_files\Day_1\Summarise_Work`  
 **Target Hardware:** Digilent Arty S7-25 (`COM5`) & Espressif ESP8266 NodeMCU (`COM4` - Silicon Labs CP210x)
 
