@@ -190,13 +190,11 @@ def serial_reader_thread(loop):
 
 async def broadcast_to_clients(message):
     if CONNECTED_CLIENTS:
-        disconnected = set()
-        for client in CONNECTED_CLIENTS:
+        for client in list(CONNECTED_CLIENTS):
             try:
                 await client.send(message)
             except Exception:
-                disconnected.add(client)
-        CONNECTED_CLIENTS.difference_update(disconnected)
+                CONNECTED_CLIENTS.discard(client)
 
 async def ws_handler(websocket):
     CONNECTED_CLIENTS.add(websocket)
@@ -204,12 +202,15 @@ async def ws_handler(websocket):
     print(f"\033[36m[WS CLIENT CONNECTED]\033[0m Total clients active: {len(CONNECTED_CLIENTS)}")
     
     # Send initial handshake with current connection state
-    await websocket.send(json.dumps({
-        "type": "handshake",
-        "status": "ready",
-        "connected_port": shared_state["connected_port"],
-        "info": "NeuroBIST-Edge Bidirectional Hardware Bridge v2.0"
-    }))
+    try:
+        await websocket.send(json.dumps({
+            "type": "handshake",
+            "status": "ready",
+            "connected_port": shared_state["connected_port"],
+            "info": "NeuroBIST-Edge Bidirectional Hardware Bridge v2.0"
+        }))
+    except Exception:
+        pass
 
     try:
         async for msg in websocket:
@@ -238,15 +239,22 @@ async def ws_handler(websocket):
     except Exception:
         pass
     finally:
-        CONNECTED_CLIENTS.remove(websocket)
+        CONNECTED_CLIENTS.discard(websocket)
         shared_state["active_clients"] = len(CONNECTED_CLIENTS)
         print(f"[WS CLIENT DISCONNECTED] Remaining clients: {len(CONNECTED_CLIENTS)}")
 
 async def run_ws_server():
     import websockets
     print(f"[WS SERVER] Starting WebSocket bridge at ws://localhost:{WS_PORT}")
-    async with websockets.serve(ws_handler, "localhost", WS_PORT):
-        await asyncio.Future()  # run forever
+    while True:
+        try:
+            async with websockets.serve(ws_handler, "localhost", WS_PORT, ping_interval=20, ping_timeout=20):
+                await asyncio.Future()  # run forever
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            print(f"[WS SERVER ERROR] {e}. Rebinding in 2 seconds...")
+            await asyncio.sleep(2)
 
 def main():
     print("================================================================")
@@ -286,11 +294,15 @@ def main():
     except Exception:
         pass
 
-    try:
-        loop.run_until_complete(run_ws_server())
-    except KeyboardInterrupt:
-        print("\n[STOP] Shutting down bridge server.")
-        sys.exit(0)
+    while True:
+        try:
+            loop.run_until_complete(run_ws_server())
+        except KeyboardInterrupt:
+            print("\n[STOP] Shutting down bridge server.")
+            sys.exit(0)
+        except Exception as e:
+            print(f"[SERVER EXCEPTION] {e}. Retrying in 2 seconds...")
+            time.sleep(2)
 
 if __name__ == "__main__":
     main()
