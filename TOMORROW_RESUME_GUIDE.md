@@ -107,4 +107,35 @@ The board **cycles dynamically and automatically on its own** without requiring 
 | [`program_fpga.bat`](file:///C:/Users/IITBHU%20RESEARCH%20LAB/OneDrive/Desktop/Arunjyoti_Sarma/My_Coding_files/Day_1\Summarise_Work/program_fpga.bat) | Directly programs `neurobist_edge.bit` to Arty S7 FPGA via JTAG |
 | [`run_simulation.bat`](file:///C:/Users/IITBHU%20RESEARCH%20LAB/OneDrive/Desktop/Arunjyoti_Sarma/My_Coding_files/Day_1\Summarise_Work/run_simulation.bat) | Runs Vivado logic simulation (`tb_neuromorphic_bist.sv`) |
 | [`build_and_run_software.bat`](file:///C:/Users/IITBHU%20RESEARCH%20LAB/OneDrive/Desktop/Arunjyoti_Sarma/My_Coding_files/Day_1\Summarise_Work/build_and_run_software.bat) | Compiles and executes C++ verification engine |
-| [`git_init_and_push.bat`](file:///C:/Users/IITBHU%20RESEARCH%20LAB/OneDrive/Desktop/Arunjyoti_Sarma/My_Coding_files/Day_1\Summarise_Work/git_init_and_push.bat) | Commits repository and prepares GitHub upload |
+| [`git_init_and_push.bat`](file:///C:/Users/IITBHU%20RESEARCH%20LAB/OneDrive/Desktop/Arunjyoti_Sarma/My_Coding_files/Day_1\Summarise_Work/git_init_and_push.bat) | Commits repository and pushes directly to GitHub |
+| [`FRESH_START.bat`](file:///C:/Users/IITBHU%20RESEARCH%20LAB/OneDrive/Desktop/Arunjyoti_Sarma/My_Coding_files/Day_1\Summarise_Work/FRESH_START.bat) | 1-Click clean reboot: kills stale ports, verifies FPGA, starts bridge & browser |
+
+---
+
+## 7. 🔄 Git Cheat Sheet: How to Update & Push Tomorrow
+
+### A. Updating THIS Project (`NeuroBIST-Edge`):
+Whenever you change files or add new features in this folder tomorrow, open PowerShell or CMD and type:
+```cmd
+cd /d "C:\Users\IITBHU RESEARCH LAB\OneDrive\Desktop\Arunjyoti_Sarma\My_Coding_files\Day_1\Summarise_Work"
+git add .
+git commit -m "Update: describe what you changed"
+git push
+```
+*(Or simply double-click `git_init_and_push.bat` and press Enter!)*
+
+---
+
+### B. Starting a BRAND-NEW Separate Project & Repository:
+When you start a new project from scratch tomorrow:
+1. Create a new folder (e.g. `Day_2\My_New_Project`).
+2. Go to **[https://github.com/new](https://github.com/new)** and create your new repo name (e.g. `RISCV-Core-Spartan7`).
+3. Open CMD in that new folder and run these 5 commands:
+```cmd
+git init -b main
+git add .
+git commit -m "Initial commit: Project launch"
+git remote add origin https://github.com/arunjyotisarmarsece24-jpg/YOUR-NEW-REPO-NAME.git
+git push -u origin main
+```
+
