@@ -443,6 +443,7 @@
         canvas {
             display: block;
             width: 100%;
+            height: 100%;
         }
 
         .canvas-overlay-tag {
@@ -1752,12 +1753,16 @@
         // Resize Canvas dynamically with resilient fallbacks
         function resizeCanvases() {
             if (canvasOsc && canvasOsc.parentElement) {
-                canvasOsc.width = canvasOsc.parentElement.clientWidth || 800;
-                canvasOsc.height = canvasOsc.parentElement.clientHeight || 250;
+                const pw = canvasOsc.parentElement.clientWidth || 800;
+                const ph = canvasOsc.parentElement.clientHeight || 250;
+                if (canvasOsc.width !== pw) canvasOsc.width = pw;
+                if (canvasOsc.height !== ph) canvasOsc.height = ph;
             }
             if (canvasFeat && canvasFeat.parentElement) {
-                canvasFeat.width = canvasFeat.parentElement.clientWidth || 400;
-                canvasFeat.height = canvasFeat.parentElement.clientHeight || 220;
+                const pw = canvasFeat.parentElement.clientWidth || 400;
+                const ph = canvasFeat.parentElement.clientHeight || 220;
+                if (canvasFeat.width !== pw) canvasFeat.width = pw;
+                if (canvasFeat.height !== ph) canvasFeat.height = ph;
             }
         }
         window.addEventListener("resize", resizeCanvases);
@@ -1955,6 +1960,8 @@
         // UI & SVG BOARD SYNCHRONIZATION
         // ====================================================================
         function updateHardwareTwinUI(inf) {
+            const isByzantineFault = (twin.state === 2 || injectResidueFaultActive);
+
             // Membrane potential progress
             document.getElementById("txtVmem").textContent = twin.v_mem;
             const vPct = Math.min(100, (twin.v_mem / twin.V_THRESHOLD) * 100);
@@ -2890,10 +2897,16 @@
 
         // Main Animation & Render Loop (60 FPS)
         function mainLoop() {
-            updateSimulation();
-            renderOscilloscope();
-            renderFeatureSpace();
-            requestAnimationFrame(mainLoop);
+            try {
+                resizeCanvases();
+                updateSimulation();
+                renderOscilloscope();
+                renderFeatureSpace();
+            } catch (err) {
+                console.error("MainLoop Error:", err);
+            } finally {
+                requestAnimationFrame(mainLoop);
+            }
         }
         requestAnimationFrame(mainLoop);
 

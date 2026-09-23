@@ -251,7 +251,7 @@ async def run_ws_server():
             async with websockets.serve(ws_handler, "localhost", WS_PORT, ping_interval=20, ping_timeout=20):
                 await asyncio.Future()  # run forever
         except asyncio.CancelledError:
-            break
+            pass
         except Exception as e:
             print(f"[WS SERVER ERROR] {e}. Rebinding in 2 seconds...")
             await asyncio.sleep(2)
