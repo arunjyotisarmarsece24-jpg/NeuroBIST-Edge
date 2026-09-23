@@ -7,10 +7,11 @@
 [![Verification](https://img.shields.io/badge/Timing_Closure-WNS_>_4.9ns-success.svg)]()
 [![License](https://img.shields.io/badge/License-MIT_Research-green.svg)]()
 
+> **Researcher & Developer:** Arunjyoti Sarma, Research Scholar  
+> **Affiliation:** Department of Electronics Engineering, Indian Institute of Technology (BHU), Varanasi, India  
 > **Project Architecture:** Hardware-Software Co-Design for Industrial Edge IoT, Neuromorphic Computing, and Autonomous Silicon Diagnostics  
 > **Target Silicon:** Digilent Arty S7-25 (AMD Spartan-7 XC7S25-CSGA324-1)  
-> **Wireless Ingestion Bridge:** Espressif ESP8266 (3.3V LVCMOS Interconnect via PMOD JA)  
-> **Directory:** `C:\Users\IITBHU RESEARCH LAB\OneDrive\Desktop\Arunjyoti_Sarma\My_Coding_files\Day_1\Summarise_Work`
+> **Wireless Ingestion Bridge:** Espressif ESP8266 (3.3V LVCMOS Interconnect via Arduino Headers)
 
 ---
 
@@ -257,7 +258,7 @@ g++ -static -O3 neuromorphic_software_engine.cpp -o neuromorphic_software_engine
 
 ## 7. Citation & Academic Attribution
 
-If you utilize this hardware-software co-processor, synthesizable Verilog RTL, or Digital Twin architecture in your research, academic publications, or student projects, please cite this repository:
+If you utilize this hardware-software co-processor, synthesizable Verilog RTL, or Digital Twin architecture in your research, academic publications, or university coursework, please cite this repository:
 
 ```bibtex
 @misc{sarma2026neurobist,
@@ -268,11 +269,13 @@ If you utilize this hardware-software co-processor, synthesizable Verilog RTL, o
   publisher = {GitHub},
   journal = {GitHub repository},
   howpublished = {\url{https://github.com/arunjyotisarmarsece24-jpg/NeuroBIST-Edge}},
-  institution = {Indian Institute of Technology (BHU)}
+  note = {Research Scholar, Department of Electronics Engineering, Indian Institute of Technology (BHU), Varanasi, India}
 }
 ```
 
-### License & Acknowledgments
-- **License:** Released under the permissive [MIT License](LICENSE) for research, academic, and non-commercial development.
-- **Affiliation:** Indian Institute of Technology (BHU), Department of Electronics Engineering.
+### Author & Research Affiliation
+- **Principal Developer & Researcher:** **Arunjyoti Sarma**  
+  *Research Scholar, Department of Electronics Engineering*  
+  *Indian Institute of Technology (BHU), Varanasi, Uttar Pradesh, India - 221005*
+- **License:** Released under the [MIT License](LICENSE) for open academic, research, and non-commercial development.
 - **Hardware Ecosystem:** Digilent Arty S7-25 (AMD Spartan-7 FPGA) & Espressif Systems (NodeMCU ESP8266).
