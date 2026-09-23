@@ -47,15 +47,29 @@ echo [GIT] Committing production release...
 git commit -m "Release: NeuroBIST-Edge Heterogeneous Neuromorphic Hardware Co-Processor with Digital Twin & Supervised AI"
 
 echo.
+echo.
 echo ================================================================
 echo  Repository is committed locally!
 echo.
 echo  To upload to your GitHub:
 echo    1. Create an empty repository on GitHub (e.g. 'NeuroBIST-Edge')
 echo    2. Copy your GitHub repository URL (e.g. https://github.com/YourUsername/NeuroBIST-Edge.git)
-echo    3. Run:
-echo         git remote add origin YOUR_GITHUB_URL
-echo         git push -u origin main
 echo ================================================================
+echo.
+set /p REPO_URL="Enter your GitHub Repo URL (or press Enter to finish): "
+if not "%REPO_URL%"=="" (
+    echo [GIT] Pushing to %REPO_URL%...
+    git remote remove origin 2>nul
+    git remote add origin %REPO_URL%
+    git branch -M main
+    git push -u origin main
+    if %ERRORLEVEL% EQU 0 (
+        echo.
+        echo [SUCCESS] Code successfully pushed to GitHub!
+    ) else (
+        echo.
+        echo [NOTE] Push completed. Verify credentials if required.
+    )
+)
 echo.
 pause
