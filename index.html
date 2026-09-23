@@ -1086,12 +1086,15 @@
                 <span style="background: rgba(0, 240, 255, 0.12); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono);">TIMEBASE: 10 ns / DIV</span>
             </div>
             <div style="display: flex; gap: 8px; font-size: 11px; align-items: center; flex-wrap: wrap;">
-                <button class="btn" onclick="sendHardwareCommand('C'); logTerminal('[MODE] Switched to 100% Clean Benign Mode. Fault injection disabled.', 'rx');" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-emerald); color: var(--accent-emerald);" title="Disable fault demo in loop: continuous 100% Green S0 invariant, zero red error messages">🌿 Clean Mode (100% Green)</button>
-                <button class="btn" onclick="sendHardwareCommand('F');" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-red); color: var(--accent-red);" title="Inject Byzantine Mod-3 desync anomaly to demonstrate hardware fault detection">⚡ Test Byzantine Fault</button>
+                <button class="btn" id="btnAudioToggle" onclick="toggleAudioSonification()" style="font-size: 10px; padding: 3px 8px; border-color: var(--text-muted); color: var(--text-secondary);" title="Toggle auditory sonification for action potentials (patch-clamp audio)">🔇 Sound: OFF</button>
+                <button class="btn" onclick="exportWaveformCSV()" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-amber); color: var(--accent-amber);" title="Download current logic analyzer waveform data as timestamped CSV">📥 Export CSV</button>
+                <button class="btn" id="btnIlaExpand" onclick="toggleIlaHeight()" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Expand or minimize logic analyzer display height">⛶ Expand</button>
+                <button class="btn" onclick="sendHardwareCommand('C'); logTerminal('[MODE] Switched to 100% Clean Benign Mode. Fault injection disabled.', 'rx');" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-emerald); color: var(--accent-emerald);" title="Disable fault demo in loop: continuous 100% Green S0 invariant, zero red error messages">🌿 Clean Mode</button>
+                <button class="btn" onclick="sendHardwareCommand('F');" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-red); color: var(--accent-red);" title="Inject Byzantine Mod-3 desync anomaly to demonstrate hardware fault detection">⚡ Test Fault</button>
                 <button class="btn" onclick="window.restoreMod3Normal();" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Restore residue invariant to S0 (Valid Green)">🔄 Restore S0</button>
             </div>
         </div>
-        <div class="canvas-container" style="height: 250px; background: #070a13; border: 1px solid #1a253a;">
+        <div class="canvas-container" id="ilaContainer" style="height: 250px; background: #070a13; border: 1px solid #1a253a; transition: height 0.25s ease;">
             <canvas id="canvasOscilloscope"></canvas>
         </div>
     </div>
@@ -1374,6 +1377,7 @@
                         this.neuron_fire = 1;
                         this.total_fires++;
                         this.fire_led_timer = 8;
+                        if (window.playNeuralBeep) window.playNeuralBeep(880, 0.05);
                     }
                 }
 
@@ -2520,9 +2524,11 @@
                                 twin.neuron_fire = 1;
                                 twin.total_fires = data.fires || (twin.total_fires + 1);
                                 twin.fire_led_timer = 25;
+                                if (window.playNeuralBeep) window.playNeuralBeep(880, 0.06);
                                 setTimeout(() => { twin.neuron_fire = 0; twin.v_mem = 0; }, 400);
                             } else if (lower.includes("spike") || lower.includes("storm") || lower.includes("flood")) {
                                 twin.ingestSpike(false);
+                                if (window.playNeuralBeep) window.playNeuralBeep(440, 0.02);
                             }
 
                             if (trimmed.includes("ACK RECEIVED") || lower.includes("matched")) {
@@ -2834,6 +2840,71 @@
         if (btnRestore) {
             btnRestore.addEventListener("click", window.restoreMod3Normal);
         }
+
+        // ====================================================================
+        // COOL ENHANCEMENTS: AUDIO SONIFICATION, WAVEFORM EXPORT, EXPAND VIEW
+        // ====================================================================
+        let audioEnabled = false;
+        let audioCtx = null;
+        window.toggleAudioSonification = function() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById("btnAudioToggle");
+            if (btn) {
+                btn.textContent = audioEnabled ? "🔊 Sound: ON" : "🔇 Sound: OFF";
+                btn.style.borderColor = audioEnabled ? "var(--accent-emerald)" : "var(--text-muted)";
+                btn.style.color = audioEnabled ? "var(--accent-emerald)" : "var(--text-secondary)";
+            }
+            logTerminal(`[AUDIO] Electrophysiology sonification ${audioEnabled ? "ENABLED (880Hz Action Potential pops)" : "MUTED"}`, "info");
+        };
+
+        window.playNeuralBeep = function(freq = 880, duration = 0.04) {
+            if (!audioEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        };
+
+        window.exportWaveformCSV = function() {
+            let csv = "timestamp_ns,clk_100m,io2_spk_in,cdc_stb_out,v_mem_mv,io4_lif_fire,io3_pat_ack,mod3_state,mod3_valid\n";
+            for (let i = 0; i < OSC_POINTS; i++) {
+                const t_ns = i * 20;
+                csv += `${t_ns},${oscData.clk[i]},${oscData.rawSpike[i]},${oscData.cleanSpike[i]},${Math.round(oscData.vMem[i])},${oscData.neuronFire[i]},${oscData.patAck[i]},${oscData.mod3State[i]},${oscData.mod3Valid[i]}\n`;
+            }
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `neurobist_ila_waveform_${Date.now()}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            logTerminal(`[EXPORT] Downloaded logic analyzer capture: neurobist_ila_waveform.csv`, "bist");
+        };
+
+        let isIlaExpanded = false;
+        window.toggleIlaHeight = function() {
+            const cont = document.getElementById("ilaContainer");
+            const btn = document.getElementById("btnIlaExpand");
+            if (!cont) return;
+            isIlaExpanded = !isIlaExpanded;
+            cont.style.height = isIlaExpanded ? "420px" : "250px";
+            if (btn) btn.textContent = isIlaExpanded ? "⛶ Minimize" : "⛶ Expand";
+            resizeCanvases();
+        };
 
         const serialModal = document.getElementById("serialModalOverlay");
         const btnOpenModal = document.getElementById("btnOpenSerialModal");
