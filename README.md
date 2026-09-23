@@ -255,15 +255,24 @@ g++ -static -O3 neuromorphic_software_engine.cpp -o neuromorphic_software_engine
 
 ---
 
-## 7. Citation & Patent Notice
+## 7. Citation & Academic Attribution
 
-If you use or adapt this work in your research or industrial implementations, please cite:
+If you utilize this hardware-software co-processor, synthesizable Verilog RTL, or Digital Twin architecture in your research, academic publications, or student projects, please cite this repository:
+
 ```bibtex
-@patent{sarma2026neurobist,
-  title={Heterogeneous Wireless-FPGA Architecture for Asynchronous Glitch-Hardened Stream Ingestion, Line-Rate Modulo-Residue Validation, and Dual-Tier Order-Statistic Telemetry Verification},
-  author={Sarma, Arunjyoti and et al.},
-  year={2026},
-  month={September},
-  institution={Indian Institute of Technology (BHU)}
+@misc{sarma2026neurobist,
+  author = {Sarma, Arunjyoti},
+  title = {NeuroBIST-Edge: Autonomous Fault-Tolerant Neuromorphic Co-Processor with Silicon BIST and Mod-3 Residue Self-Healing across AMD Spartan-7 FPGA and ESP8266},
+  year = {2026},
+  month = {September},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/arunjyotisarmarsece24-jpg/NeuroBIST-Edge}},
+  institution = {Indian Institute of Technology (BHU)}
 }
 ```
+
+### License & Acknowledgments
+- **License:** Released under the permissive [MIT License](LICENSE) for research, academic, and non-commercial development.
+- **Affiliation:** Indian Institute of Technology (BHU), Department of Electronics Engineering.
+- **Hardware Ecosystem:** Digilent Arty S7-25 (AMD Spartan-7 FPGA) & Espressif Systems (NodeMCU ESP8266).
