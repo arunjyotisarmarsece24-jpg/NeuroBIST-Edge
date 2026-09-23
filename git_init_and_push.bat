@@ -56,11 +56,15 @@ echo    1. Create an empty repository on GitHub (e.g. 'NeuroBIST-Edge')
 echo    2. Copy your GitHub repository URL (e.g. https://github.com/YourUsername/NeuroBIST-Edge.git)
 echo ================================================================
 echo.
-set /p REPO_URL="Enter your GitHub Repo URL (or press Enter to finish): "
-if not "%REPO_URL%"=="" (
-    echo [GIT] Pushing to %REPO_URL%...
-    git remote remove origin 2>nul
-    git remote add origin %REPO_URL%
+set DEFAULT_URL=https://github.com/arunjyotisarmarsece24-jpg/NeuroBIST-Edge.git
+echo.
+echo Pre-configured GitHub URL: %DEFAULT_URL%
+set /p REPO_URL="Press [ENTER] to push directly to this URL: "
+if "%REPO_URL%"=="" set REPO_URL=%DEFAULT_URL%
+
+echo [GIT] Pushing to %REPO_URL%...
+git remote remove origin 2>nul
+git remote add origin %REPO_URL%
     git branch -M main
     git push -u origin main
     if %ERRORLEVEL% EQU 0 (
