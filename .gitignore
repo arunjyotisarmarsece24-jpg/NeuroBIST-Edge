@@ -1,0 +1,20 @@
+# EDA & Vivado Temporary Build Artifacts
+.Xil/
+xsim.dir/
+arty_s7_neuromorphic_proj/
+*.jou
+*.log
+*.str
+*.backup.*
+*.pb
+*.wdb
+clockInfo.txt
+dfx_runtime.txt
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS generated files
+Thumbs.db
+.DS_Store
