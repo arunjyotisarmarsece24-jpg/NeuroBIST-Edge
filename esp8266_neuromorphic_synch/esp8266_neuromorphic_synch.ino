@@ -85,7 +85,7 @@ void inject_metastable_glitch() {
  * that forces the Spartan-7 residue engine into Remainder State 2 (LD0 turns RED).
  */
 void inject_mod3_fault() {
-    Serial.println("\n[FAULT INJECT] Emitting Byzantine Mod-3 Desync Anomaly to IO2...");
+    Serial.println("\n[FAULT TEST] Emitting Byzantine Mod-3 Desync Anomaly to IO2...");
     digitalWrite(PIN_SPIKE_OUT, HIGH);
     delayMicroseconds(20);
     digitalWrite(PIN_SPIKE_OUT, LOW);
@@ -93,7 +93,7 @@ void inject_mod3_fault() {
     digitalWrite(PIN_SPIKE_OUT, HIGH);
     delayMicroseconds(20);
     digitalWrite(PIN_SPIKE_OUT, LOW);
-    Serial.println("  \033[31m[RESIDUE ERROR] Modulo-3 arithmetic invariant violated! FPGA LD0 glows RED (S2 error).\033[0m");
+    Serial.println("  \033[31m[BYZANTINE TEST FLAGGED] Modulo-3 invariant detected S2 Anomaly! FPGA LD0 glows RED.\033[0m");
     delay(1200); // Latch for 1.2s display
     emit_spike(80); // Emit valid recovery spike
     Serial.println("  \033[32m[RESIDUE SELF-HEAL] Modulo-3 invariant restored to S0 [VALID]! FPGA LD0 returns to GREEN.\033[0m");
@@ -184,6 +184,9 @@ void query_bist_status() {
     }
 }
 
+static bool auto_mode_enabled = true;
+static bool fault_test_in_loop = false; // Default: 100% Clean Benign Mode (No periodic fault injection)
+
 /**
  * Processes incoming commands from USB Serial (Web Dashboard / Python Bridge).
  */
@@ -218,8 +221,25 @@ void handle_serial_commands() {
                 break;
             case 'A':
             case 'a':
-                // Toggle autonomous mode
-                // Handled in loop
+                auto_mode_enabled = !auto_mode_enabled;
+                Serial.printf("\n[AUTO SEQUENCER] Autonomous hardware demonstration loop is now: %s\n", 
+                              auto_mode_enabled ? "ENABLED" : "PAUSED");
+                break;
+            case 'C':
+            case 'c':
+                fault_test_in_loop = false;
+                emit_spike(80);
+                Serial.println(F("\n[CLEAN BENIGN MODE ACTIVE] Byzantine fault demo step disabled. Continuous 100% Valid S0 Green operation."));
+                break;
+            case 'M':
+            case 'm':
+                fault_test_in_loop = !fault_test_in_loop;
+                Serial.printf("\n[MODE SWITCH] Demo fault testing is now: %s\n", 
+                              fault_test_in_loop ? "ENABLED (Fault Test Mode)" : "DISABLED (100% Clean Benign Mode)");
+                break;
+            case '0':
+                emit_spike(80);
+                Serial.println(F("\n[RESIDUE SELF-HEAL] Modulo-3 invariant manually restored to S0 [VALID]! FPGA LD0 returns to GREEN."));
                 break;
             case '1':
                 emit_spike(80);
@@ -231,7 +251,7 @@ void handle_serial_commands() {
                 // Ignore whitespace
                 break;
             default:
-                Serial.printf("[CMD UNKNOWN] '%c' - Supported: F (Fault), G (Glitch), B (Burst), T (Threshold), S (Storm), R (Reset), A (Auto)\n", cmd);
+                Serial.printf("[CMD UNKNOWN] '%c' - Supported: F (Fault), G (Glitch), B (Burst), T (Threshold), S (Storm), R (Reset), A (Auto), C (Clean), 0 (Heal)\n", cmd);
                 break;
         }
     }
@@ -251,7 +271,6 @@ enum AutoState {
 
 static AutoState current_auto_state = AUTO_BURST;
 static unsigned long last_auto_step = 0;
-static bool auto_mode_enabled = true;
 
 void loop() {
     // 1. Process real-time interactive commands from Web Dashboard / Serial Monitor
@@ -265,37 +284,41 @@ void loop() {
 
             switch (current_auto_state) {
                 case AUTO_BURST:
-                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 1/6] Sending 5-Spike Burst (10110)...");
+                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 1/5] Sending 5-Spike Burst (10110)...");
                     send_receptive_field_burst();
                     current_auto_state = AUTO_THRESHOLD_FIRE;
                     break;
 
                 case AUTO_THRESHOLD_FIRE:
-                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 2/6] Driving LIF Neuron to Threshold (Action Potential on IO4)...");
+                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 2/5] Driving LIF Neuron to Threshold (Action Potential on IO4)...");
                     drive_neuron_to_threshold();
                     current_auto_state = AUTO_SPIKE_STORM;
                     break;
 
                 case AUTO_SPIKE_STORM:
-                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 3/6] Emitting High-Frequency Spike Storm (LD5 Strobe)...");
+                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 3/5] Emitting High-Frequency Spike Storm (LD5 Strobe)...");
                     emit_spike_flood(15);
-                    current_auto_state = AUTO_MOD3_FAULT;
+                    if (fault_test_in_loop) {
+                        current_auto_state = AUTO_MOD3_FAULT;
+                    } else {
+                        current_auto_state = AUTO_METASTABLE_GLITCH; // Clean mode skips fault!
+                    }
                     break;
 
                 case AUTO_MOD3_FAULT:
-                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 4/6] Injecting Byzantine Mod-3 Fault (LD0 RED -> GREEN)...");
+                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 4/6] Testing Byzantine Mod-3 Fault & Self-Healing...");
                     inject_mod3_fault();
                     current_auto_state = AUTO_METASTABLE_GLITCH;
                     break;
 
                 case AUTO_METASTABLE_GLITCH:
-                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 5/6] Injecting Sub-20ns Metastable Glitch (CDC Rejection)...");
+                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 4/5] Injecting Sub-20ns Metastable Glitch (CDC Rejection)...");
                     inject_metastable_glitch();
                     current_auto_state = AUTO_BIST_QUERY;
                     break;
 
                 case AUTO_BIST_QUERY:
-                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 6/6] Verifying 16-Bit Silicon BIST MISR Signature on IO5...");
+                    Serial.println("\n>>> [ESP8266 AUTONOMOUS DEMO: STEP 5/5] Verifying 16-Bit Silicon BIST MISR Signature on IO5...");
                     query_bist_status();
                     current_auto_state = AUTO_BURST;
                     break;

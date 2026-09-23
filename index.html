@@ -1077,21 +1077,20 @@
 
     <!-- BOTTOM PANEL: MULTI-CHANNEL SYNCHRONIZED LOGIC ANALYZER / OSCILLOSCOPE -->
     <div style="background: var(--bg-panel); border-top: 1px solid var(--border-color); padding: 12px 20px; display: flex; flex-direction: column; gap: 8px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                <span style="color: var(--accent-cyan);">∿</span>
-                Multi-Channel Real-Time Oscilloscope // 100 MHz Hardware Silicon Trace
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-primary); display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px;">
+                <span style="color: var(--accent-cyan); font-size: 14px;">∿</span>
+                <span>FPGA Silicon Logic Analyzer (Vivado ILA) // 100 MHz Hardware Synchronized</span>
+                <span style="background: rgba(0, 255, 102, 0.15); border: 1px solid var(--accent-emerald); color: var(--accent-emerald); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono);">ILA TRIG: AUTO (T)</span>
+                <span style="background: rgba(0, 240, 255, 0.12); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono);">TIMEBASE: 10 ns / DIV</span>
             </div>
-            <div style="display: flex; gap: 15px; font-size: 10px; color: var(--text-secondary);">
-                <span><span style="color: #ffb800;">■</span> CH1: Raw Spikes (IO2)</span>
-                <span><span style="color: #00ff66;">■</span> CH2: Filtered CDC</span>
-                <span><span style="color: #00f0ff;">■</span> CH3: Vmem (mV)</span>
-                <span><span style="color: #ff1a53;">■</span> CH4: LIF Fire (IO4)</span>
-                <span><span style="color: #b537f2;">■</span> CH5: Receptive ACK (IO3)</span>
-                <span><span style="color: #fff;">■</span> CH6: Mod-3 Valid (LD0)</span>
+            <div style="display: flex; gap: 8px; font-size: 11px; align-items: center; flex-wrap: wrap;">
+                <button class="btn" onclick="sendHardwareCommand('C'); logTerminal('[MODE] Switched to 100% Clean Benign Mode. Fault injection disabled.', 'rx');" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-emerald); color: var(--accent-emerald);" title="Disable fault demo in loop: continuous 100% Green S0 invariant, zero red error messages">🌿 Clean Mode (100% Green)</button>
+                <button class="btn" onclick="sendHardwareCommand('F');" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-red); color: var(--accent-red);" title="Inject Byzantine Mod-3 desync anomaly to demonstrate hardware fault detection">⚡ Test Byzantine Fault</button>
+                <button class="btn" onclick="window.restoreMod3Normal();" style="font-size: 10px; padding: 3px 8px; border-color: var(--accent-cyan); color: var(--accent-cyan);" title="Restore residue invariant to S0 (Valid Green)">🔄 Restore S0</button>
             </div>
         </div>
-        <div class="canvas-container" style="height: 140px;">
+        <div class="canvas-container" style="height: 250px; background: #070a13; border: 1px solid #1a253a;">
             <canvas id="canvasOscilloscope"></canvas>
         </div>
     </div>
@@ -1146,8 +1145,9 @@
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                     <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">QUICK DOWNLINKS:</span>
                     <button class="btn" onclick="sendHardwareCommand('T')" style="font-size: 11px; padding: 4px 8px; border-color: var(--accent-blue); color: var(--accent-blue);">[T] Drive V_th Fire</button>
-                    <button class="btn" onclick="sendHardwareCommand('F')" style="font-size: 11px; padding: 4px 8px; border-color: var(--accent-red); color: var(--accent-red);">[F] Inject Mod-3 Fault</button>
-                    <button class="btn" onclick="window.restoreMod3Normal()" style="font-size: 11px; padding: 4px 8px; border-color: var(--accent-emerald); color: var(--accent-emerald);">[0] Self-Heal S0 (Valid)</button>
+                    <button class="btn" onclick="sendHardwareCommand('C'); logTerminal('[MODE] Switched to 100% Clean Benign Mode.', 'rx');" style="font-size: 11px; padding: 4px 8px; border-color: var(--accent-emerald); color: var(--accent-emerald);">[C] Clean Mode (100% Green)</button>
+                    <button class="btn" onclick="sendHardwareCommand('F')" style="font-size: 11px; padding: 4px 8px; border-color: var(--accent-red); color: var(--accent-red);">[F] Test Byzantine Fault</button>
+                    <button class="btn" onclick="window.restoreMod3Normal()" style="font-size: 11px; padding: 4px 8px; border-color: var(--accent-cyan); color: var(--accent-cyan);">[0] Self-Heal S0</button>
                     <button class="btn" onclick="sendHardwareCommand('B')" style="font-size: 11px; padding: 4px 8px; border-color: var(--accent-emerald); color: var(--accent-emerald);">[B] Send Burst 10110</button>
                     <button class="btn" onclick="sendHardwareCommand('G')" style="font-size: 11px; padding: 4px 8px; border-color: #ff9900; color: #ff9900;">[G] Inject Glitch</button>
                     <button class="btn" onclick="sendHardwareCommand('S')" style="font-size: 11px; padding: 4px 8px; border-color: #b537f2; color: #b537f2;">[S] Spike Storm (15x)</button>
@@ -1739,11 +1739,13 @@
         // Oscilloscope Channels Rolling Buffers
         const OSC_POINTS = 240;
         const oscData = {
+            clk: Array(OSC_POINTS).fill(0),
             rawSpike: Array(OSC_POINTS).fill(0),
             cleanSpike: Array(OSC_POINTS).fill(0),
             vMem: Array(OSC_POINTS).fill(0),
             neuronFire: Array(OSC_POINTS).fill(0),
             patAck: Array(OSC_POINTS).fill(0),
+            mod3State: Array(OSC_POINTS).fill(0),
             mod3Valid: Array(OSC_POINTS).fill(1)
         };
 
@@ -1751,7 +1753,7 @@
         function resizeCanvases() {
             if (canvasOsc && canvasOsc.parentElement) {
                 canvasOsc.width = canvasOsc.parentElement.clientWidth || 800;
-                canvasOsc.height = canvasOsc.parentElement.clientHeight || 140;
+                canvasOsc.height = canvasOsc.parentElement.clientHeight || 250;
             }
             if (canvasFeat && canvasFeat.parentElement) {
                 canvasFeat.width = canvasFeat.parentElement.clientWidth || 400;
@@ -1923,23 +1925,27 @@
             if (featureSamples.length > 65) featureSamples.shift();
 
             // Record Oscilloscope Traces with dynamic pulse stretching and analog RC decay
+            const clkVal = (simTick % 4 < 2) ? 1 : 0;
             const rawVal = twin.async_spike_in || (twin.spike_led_timer > 0 ? 1 : 0);
             const cleanVal = twin.clean_spike || (twin.spike_led_timer > 4 ? 1 : 0);
             const fireVal = twin.neuron_fire || (twin.fire_led_timer > 0 ? 1 : 0);
             const ackVal = twin.pat_found ? 1 : 0;
             const mod3Val = (twin.state === 2 || injectResidueFaultActive) ? 0 : 1;
+            const mod3StateVal = (twin.state === 2 || injectResidueFaultActive) ? 2 : (twin.state || 0);
 
             // Biological / hardware membrane potential analog leaky decay
             if (!twin.neuron_fire && twin.v_mem > 0) {
                 twin.v_mem = Math.max(0, twin.v_mem * 0.994);
             }
 
+            oscData.clk.push(clkVal); oscData.clk.shift();
             oscData.rawSpike.push(rawVal); oscData.rawSpike.shift();
             oscData.cleanSpike.push(cleanVal); oscData.cleanSpike.shift();
-            oscData.vMem.push(twin.v_mem / 1000.0); oscData.vMem.shift();
+            oscData.vMem.push(twin.v_mem); oscData.vMem.shift();
             oscData.neuronFire.push(fireVal); oscData.neuronFire.shift();
             oscData.patAck.push(ackVal); oscData.patAck.shift();
             oscData.mod3Valid.push(mod3Val); oscData.mod3Valid.shift();
+            oscData.mod3State.push(mod3StateVal); oscData.mod3State.shift();
 
             // Update UI Elements
             updateHardwareTwinUI(inference);
@@ -2089,95 +2095,253 @@
         }
 
         // ====================================================================
-        // RENDER: OSCILLOSCOPE WAVEFORMS (60 FPS Canvas)
+        // RENDER: AMD VIVADO HARDWARE LOGIC ANALYZER (ILA) & OSCILLOSCOPE
         // ====================================================================
         function renderOscilloscope() {
             ctxOsc.clearRect(0, 0, canvasOsc.width, canvasOsc.height);
             const w = canvasOsc.width;
             const h = canvasOsc.height;
 
-            // Background Grid Lines
-            ctxOsc.strokeStyle = "#161d2d";
+            const headerWidth = 145; // Vivado Signal Gutter
+            const timeRulerHeight = 22; // Top timebase ruler
+            const plotW = Math.max(10, w - headerWidth);
+            const plotH = Math.max(10, h - timeRulerHeight);
+            const numChannels = 7;
+            const laneH = plotH / numChannels;
+
+            // 1. Left-Hand Vivado Signal Hierarchy Gutter
+            ctxOsc.fillStyle = "#0a0f1d";
+            ctxOsc.fillRect(0, 0, headerWidth, h);
+            ctxOsc.strokeStyle = "#1b2842";
             ctxOsc.lineWidth = 1;
-            for (let x = 0; x < w; x += 40) {
-                ctxOsc.beginPath(); ctxOsc.moveTo(x, 0); ctxOsc.lineTo(x, h); ctxOsc.stroke();
-            }
-            for (let y = 0; y < h; y += 28) {
-                ctxOsc.beginPath(); ctxOsc.moveTo(0, y); ctxOsc.lineTo(w, y); ctxOsc.stroke();
-            }
+            ctxOsc.strokeRect(0, 0, headerWidth, h);
 
-            // Golden V_th Threshold Line on analog channel
-            const vthY = h - (1.0 * (h - 20)) - 10;
-            ctxOsc.strokeStyle = "rgba(255, 184, 0, 0.4)";
-            ctxOsc.setLineDash([4, 4]);
-            ctxOsc.beginPath(); ctxOsc.moveTo(0, vthY); ctxOsc.lineTo(w, vthY); ctxOsc.stroke();
-            ctxOsc.setLineDash([]);
-            ctxOsc.fillStyle = "rgba(255, 184, 0, 0.8)";
-            ctxOsc.font = "9px monospace";
-            ctxOsc.fillText("V_th (1000 mV)", 10, vthY - 3);
+            // Gutter Header
+            ctxOsc.fillStyle = "#121b2d";
+            ctxOsc.fillRect(0, 0, headerWidth, timeRulerHeight);
+            ctxOsc.fillStyle = "#8aa2c0";
+            ctxOsc.font = "bold 9px monospace";
+            ctxOsc.fillText("SIGNAL NAME", 8, 14);
+            ctxOsc.fillText("VAL", headerWidth - 28, 14);
 
-            // Channel Draw Helper
-            const drawTrace = (data, color, baseOffsetY, scaleY, isStep = true) => {
-                ctxOsc.strokeStyle = color;
-                ctxOsc.lineWidth = 1.8;
+            // 2. Top Time Ruler (Vivado Timebase)
+            ctxOsc.fillStyle = "#0c1322";
+            ctxOsc.fillRect(headerWidth, 0, plotW, timeRulerHeight);
+            ctxOsc.strokeStyle = "#1b2842";
+            ctxOsc.beginPath();
+            ctxOsc.moveTo(headerWidth, timeRulerHeight);
+            ctxOsc.lineTo(w, timeRulerHeight);
+            ctxOsc.stroke();
+
+            // Time ruler ticks every 60px
+            ctxOsc.fillStyle = "#6d86a8";
+            ctxOsc.font = "8px monospace";
+            const tickSpacing = 60;
+            const timeStepNs = 20; // 20ns per division (matching 100MHz clock)
+            for (let x = headerWidth; x < w; x += tickSpacing) {
+                const tickIdx = Math.floor((x - headerWidth) / tickSpacing);
                 ctxOsc.beginPath();
-                const stepX = w / (OSC_POINTS - 1);
+                ctxOsc.strokeStyle = "#162238";
+                ctxOsc.moveTo(x, timeRulerHeight - 6);
+                ctxOsc.lineTo(x, h);
+                ctxOsc.stroke();
 
-                for (let i = 0; i < OSC_POINTS; i++) {
-                    const x = i * stepX;
-                    const y = baseOffsetY - (data[i] * scaleY);
-                    if (i === 0) ctxOsc.moveTo(x, y);
-                    else {
-                        if (isStep) {
-                            const prevX = (i - 1) * stepX;
-                            const prevY = baseOffsetY - (data[i - 1] * scaleY);
-                            ctxOsc.lineTo(x, prevY);
-                            ctxOsc.lineTo(x, y);
+                ctxOsc.fillText(`${tickIdx * timeStepNs}ns`, x + 3, 14);
+            }
+
+            // Yellow Vivado Trigger Marker '▼ T'
+            const trigX = headerWidth + 90;
+            ctxOsc.fillStyle = "#ffb800";
+            ctxOsc.beginPath();
+            ctxOsc.moveTo(trigX - 4, 3);
+            ctxOsc.lineTo(trigX + 4, 3);
+            ctxOsc.lineTo(trigX, 11);
+            ctxOsc.closePath();
+            ctxOsc.fill();
+            ctxOsc.font = "bold 8px monospace";
+            ctxOsc.fillText("T", trigX + 5, 10);
+
+            // Dashed vertical trigger line down all channels
+            ctxOsc.strokeStyle = "rgba(255, 184, 0, 0.35)";
+            ctxOsc.setLineDash([3, 3]);
+            ctxOsc.beginPath();
+            ctxOsc.moveTo(trigX, timeRulerHeight);
+            ctxOsc.lineTo(trigX, h);
+            ctxOsc.stroke();
+            ctxOsc.setLineDash([]);
+
+            // Signal Metadata definitions
+            const isFaultState = (twin.state === 2 || injectResidueFaultActive);
+            const channels = [
+                {
+                    name: "clk_100m",
+                    type: "clk",
+                    color: "#00f0ff",
+                    data: oscData.clk,
+                    valStr: (oscData.clk[OSC_POINTS - 1] ? "1'b1" : "1'b0")
+                },
+                {
+                    name: "io2_spk_in",
+                    type: "logic",
+                    color: "#ffb800",
+                    data: oscData.rawSpike,
+                    valStr: (oscData.rawSpike[OSC_POINTS - 1] ? "1'b1" : "1'b0")
+                },
+                {
+                    name: "cdc_stb_out",
+                    type: "logic",
+                    color: "#00ff66",
+                    data: oscData.cleanSpike,
+                    valStr: (oscData.cleanSpike[OSC_POINTS - 1] ? "1'b1" : "1'b0")
+                },
+                {
+                    name: "v_mem[9:0]",
+                    type: "analog",
+                    color: "#00f0ff",
+                    data: oscData.vMem,
+                    valStr: `${Math.round(twin.v_mem)}mV`
+                },
+                {
+                    name: "io4_lif_fire",
+                    type: "logic",
+                    color: "#ff1a53",
+                    data: oscData.neuronFire,
+                    valStr: (oscData.neuronFire[OSC_POINTS - 1] ? "1'b1" : "1'b0")
+                },
+                {
+                    name: "io3_pat_ack",
+                    type: "logic",
+                    color: "#b537f2",
+                    data: oscData.patAck,
+                    valStr: (oscData.patAck[OSC_POINTS - 1] ? "1'b1" : "1'b0")
+                },
+                {
+                    name: "mod3_state[1:0]",
+                    type: "bus",
+                    color: isFaultState ? "#ff1a53" : "#00ff66",
+                    data: oscData.mod3State,
+                    valStr: isFaultState ? "S2:FLT" : (twin.state === 1 ? "S1:INT" : "S0:OK")
+                }
+            ];
+
+            // Render each channel lane
+            for (let ch = 0; ch < numChannels; ch++) {
+                const laneY = timeRulerHeight + (ch * laneH);
+                const info = channels[ch];
+
+                // Lane Background Stripe
+                ctxOsc.fillStyle = (ch % 2 === 0) ? "#070b16" : "#090e1c";
+                ctxOsc.fillRect(headerWidth, laneY, plotW, laneH);
+
+                // Lane horizontal grid border
+                ctxOsc.strokeStyle = "#141e30";
+                ctxOsc.lineWidth = 1;
+                ctxOsc.beginPath();
+                ctxOsc.moveTo(0, laneY + laneH);
+                ctxOsc.lineTo(w, laneY + laneH);
+                ctxOsc.stroke();
+
+                // Sidebar Gutter text
+                ctxOsc.font = "bold 9px monospace";
+                ctxOsc.fillStyle = info.color;
+                ctxOsc.fillText(info.name, 8, laneY + (laneH / 2) + 3);
+
+                ctxOsc.fillStyle = "#cbd8eb";
+                ctxOsc.font = "9px monospace";
+                ctxOsc.fillText(info.valStr, headerWidth - 45, laneY + (laneH / 2) + 3);
+
+                // Draw Waveform for this channel
+                const highY = laneY + 5;
+                const lowY = laneY + laneH - 5;
+                const stepX = plotW / (OSC_POINTS - 1);
+
+                if (info.type === "clk" || info.type === "logic") {
+                    ctxOsc.strokeStyle = info.color;
+                    ctxOsc.lineWidth = 1.8;
+                    ctxOsc.beginPath();
+
+                    for (let i = 0; i < OSC_POINTS; i++) {
+                        const px = headerWidth + (i * stepX);
+                        const py = (info.data[i] > 0.3) ? highY : lowY;
+
+                        if (i === 0) {
+                            ctxOsc.moveTo(px, py);
                         } else {
-                            ctxOsc.lineTo(x, y);
+                            const prevPx = headerWidth + ((i - 1) * stepX);
+                            const prevPy = (info.data[i - 1] > 0.3) ? highY : lowY;
+                            if (py !== prevPy) {
+                                ctxOsc.lineTo(px, prevPy); // Crisp vertical logic edge
+                            }
+                            ctxOsc.lineTo(px, py);
                         }
                     }
+                    ctxOsc.stroke();
+                } else if (info.type === "analog") {
+                    // Membrane Potential V_mem Step Accumulator Lane
+                    const vthY = highY + 2;
+                    
+                    // Golden dashed V_th threshold indicator
+                    ctxOsc.strokeStyle = "rgba(255, 184, 0, 0.4)";
+                    ctxOsc.setLineDash([3, 3]);
+                    ctxOsc.beginPath();
+                    ctxOsc.moveTo(headerWidth, vthY);
+                    ctxOsc.lineTo(w, vthY);
+                    ctxOsc.stroke();
+                    ctxOsc.setLineDash([]);
+                    ctxOsc.fillStyle = "rgba(255, 184, 0, 0.7)";
+                    ctxOsc.font = "7px monospace";
+                    ctxOsc.fillText("Vth(1000mV)", headerWidth + 4, vthY - 2);
+
+                    // Analog step wave
+                    ctxOsc.strokeStyle = "#00f0ff";
+                    ctxOsc.lineWidth = 2;
+                    ctxOsc.beginPath();
+                    for (let i = 0; i < OSC_POINTS; i++) {
+                        const px = headerWidth + (i * stepX);
+                        const norm = Math.min(1.0, info.data[i] / 1000.0);
+                        const py = lowY - (norm * (lowY - highY));
+                        if (i === 0) ctxOsc.moveTo(px, py);
+                        else ctxOsc.lineTo(px, py);
+                    }
+                    ctxOsc.stroke();
+
+                    // Subtle gradient fill under curve
+                    ctxOsc.lineTo(w, lowY);
+                    ctxOsc.lineTo(headerWidth, lowY);
+                    ctxOsc.closePath();
+                    ctxOsc.fillStyle = "rgba(0, 240, 255, 0.08)";
+                    ctxOsc.fill();
+                } else if (info.type === "bus") {
+                    // Vivado Bus Lane with diamond/hexagonal cells
+                    ctxOsc.strokeStyle = info.color;
+                    ctxOsc.fillStyle = isFaultState ? "rgba(255, 26, 83, 0.2)" : "rgba(0, 255, 102, 0.15)";
+                    ctxOsc.lineWidth = 1.5;
+
+                    ctxOsc.fillRect(headerWidth + 2, highY + 2, plotW - 4, lowY - highY - 4);
+                    ctxOsc.strokeRect(headerWidth + 2, highY + 2, plotW - 4, lowY - highY - 4);
+
+                    // Bus State label inside block
+                    ctxOsc.fillStyle = info.color;
+                    ctxOsc.font = "bold 9px monospace";
+                    const busLabel = isFaultState ? "< 2'b10: S2 [RESIDUE FAULT: DETECTED BY SPARTAN-7] >" : 
+                                    (twin.state === 1 ? "< 2'b01: S1 [INTERMEDIATE RESIDUE] >" : "< 2'b00: S0 [VALID INVARIANT: ARITHMETIC SECURE] >");
+                    ctxOsc.fillText(busLabel, headerWidth + (plotW / 2) - 130, laneY + (laneH / 2) + 3);
                 }
-                ctxOsc.stroke();
-            };
+            }
 
-            // Channel Voltage Level Labels on Left
-            ctxOsc.font = "bold 9px monospace";
-            ctxOsc.fillStyle = "rgba(255, 184, 0, 0.85)"; ctxOsc.fillText("CH1 (IO2 Spike)", 10, h - 114);
-            ctxOsc.fillStyle = "rgba(0, 255, 102, 0.85)"; ctxOsc.fillText("CH2 (CDC Filter)", 10, h - 89);
-            ctxOsc.fillStyle = "rgba(255, 26, 83, 0.85)";  ctxOsc.fillText("CH4 (IO4 Fire)", 10, h - 64);
-            ctxOsc.fillStyle = "rgba(181, 55, 242, 0.85)"; ctxOsc.fillText("CH5 (IO3 ACK)", 10, h - 39);
-            ctxOsc.fillStyle = "rgba(0, 240, 255, 0.85)"; ctxOsc.fillText("CH3 (Vmem mV)", 10, h - 18);
-            ctxOsc.fillStyle = "rgba(255, 255, 255, 0.85)"; ctxOsc.fillText("CH6 (Mod-3 Valid)", 10, h - 4);
-
-            // CH1: Raw Asynchronous Spikes
-            drawTrace(oscData.rawSpike, "#ffb800", h - 108, 18, true);
-
-            // CH2: Clean Synchronized Strobe
-            drawTrace(oscData.cleanSpike, "#00ff66", h - 83, 18, true);
-
-            // CH4: LIF Neuron Fire Action Potential
-            drawTrace(oscData.neuronFire, "#ff1a53", h - 58, 18, true);
-
-            // CH5: Pattern ACK
-            drawTrace(oscData.patAck, "#b537f2", h - 33, 18, true);
-
-            // CH6: Mod-3 Residue Invariant Valid
-            drawTrace(oscData.mod3Valid, "#ffffff", h - 8, 8, true);
-
-            // CH3: Analog Membrane Potential (V_mem)
-            drawTrace(oscData.vMem, "#00f0ff", h - 8, h - 35, false);
-
-            // Real-Time Sweep Cursor (Analog Phosphor Scope Feel)
-            const sweepX = (simTick * 2.5) % w;
-            const grad = ctxOsc.createLinearGradient(sweepX - 20, 0, sweepX, 0);
+            // Real-Time Sweep Scanline (Phosphor Cursor)
+            const sweepX = headerWidth + ((simTick * 2.5) % plotW);
+            const grad = ctxOsc.createLinearGradient(sweepX - 25, 0, sweepX, 0);
             grad.addColorStop(0, "rgba(0, 240, 255, 0)");
-            grad.addColorStop(1, "rgba(0, 240, 255, 0.35)");
+            grad.addColorStop(1, "rgba(0, 240, 255, 0.25)");
             ctxOsc.fillStyle = grad;
-            ctxOsc.fillRect(sweepX - 20, 0, 20, h);
-            ctxOsc.strokeStyle = "rgba(0, 240, 255, 0.8)";
-            ctxOsc.lineWidth = 1;
-            ctxOsc.beginPath(); ctxOsc.moveTo(sweepX, 0); ctxOsc.lineTo(sweepX, h); ctxOsc.stroke();
+            ctxOsc.fillRect(sweepX - 25, timeRulerHeight, 25, plotH);
+            ctxOsc.strokeStyle = "rgba(0, 240, 255, 0.85)";
+            ctxOsc.lineWidth = 1.2;
+            ctxOsc.beginPath();
+            ctxOsc.moveTo(sweepX, timeRulerHeight);
+            ctxOsc.lineTo(sweepX, h);
+            ctxOsc.stroke();
         }
 
         // ====================================================================
